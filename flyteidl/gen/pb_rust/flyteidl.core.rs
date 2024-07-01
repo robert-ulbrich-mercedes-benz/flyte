@@ -2155,6 +2155,10 @@ pub struct TaskLog {
     pub message_format: i32,
     #[prost(message, optional, tag="4")]
     pub ttl: ::core::option::Option<::prost_types::Duration>,
+    #[prost(bool, tag="5")]
+    pub show_while_pending: bool,
+    #[prost(bool, tag="6")]
+    pub hide_once_finished: bool,
 }
 /// Nested message and enum types in `TaskLog`.
 pub mod task_log {
@@ -2397,17 +2401,23 @@ pub struct ArrayNode {
     /// node is the sub-node that will be executed for each element in the array.
     #[prost(message, optional, boxed, tag="1")]
     pub node: ::core::option::Option<::prost::alloc::boxed::Box<Node>>,
-    /// parallelism defines the minimum number of instances to bring up concurrently at any given
-    /// point. Note that this is an optimistic restriction and that, due to network partitioning or
-    /// other failures, the actual number of currently running instances might be more. This has to
-    /// be a positive number if assigned. Default value is size.
-    #[prost(int64, tag="2")]
-    pub parallelism: i64,
+    #[prost(oneof="array_node::ParallelismOption", tags="2")]
+    pub parallelism_option: ::core::option::Option<array_node::ParallelismOption>,
     #[prost(oneof="array_node::SuccessCriteria", tags="3, 4")]
     pub success_criteria: ::core::option::Option<array_node::SuccessCriteria>,
 }
 /// Nested message and enum types in `ArrayNode`.
 pub mod array_node {
+    #[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum ParallelismOption {
+        /// parallelism defines the minimum number of instances to bring up concurrently at any given
+        /// point. Note that this is an optimistic restriction and that, due to network partitioning or
+        /// other failures, the actual number of currently running instances might be more. This has to
+        /// be a positive number if assigned. Default value is size.
+        #[prost(uint32, tag="2")]
+        Parallelism(u32),
+    }
     #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Oneof)]
     pub enum SuccessCriteria {
@@ -2933,6 +2943,56 @@ impl CatalogCacheStatus {
             "CACHE_EVICTED" => Some(Self::CacheEvicted),
             _ => None,
         }
+    }
+}
+/// ExecutionEnvAssignment is a message that is used to assign an execution environment to a set of
+/// nodes.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExecutionEnvAssignment {
+    /// node_ids is a list of node ids that are being assigned the execution environment.
+    #[prost(string, repeated, tag="1")]
+    pub node_ids: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// task_type is the type of task that is being assigned. This is used to override which Flyte
+    /// plugin will be used during execution.
+    #[prost(string, tag="2")]
+    pub task_type: ::prost::alloc::string::String,
+    /// execution_env is the environment that is being assigned to the nodes.
+    #[prost(message, optional, tag="3")]
+    pub execution_env: ::core::option::Option<ExecutionEnv>,
+}
+/// ExecutionEnv is a message that is used to specify the execution environment.
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ExecutionEnv {
+    /// name is a human-readable identifier for the execution environment. This is combined with the
+    /// project, domain, and version to uniquely identify an execution environment.
+    #[prost(string, tag="1")]
+    pub name: ::prost::alloc::string::String,
+    /// type is the type of the execution environment.
+    #[prost(string, tag="2")]
+    pub r#type: ::prost::alloc::string::String,
+    /// version is the version of the execution environment. This may be used differently by each
+    /// individual environment type (ex. auto-generated or manually provided), but is intended to
+    /// allow variance in environment specifications with the same ID.
+    #[prost(string, tag="5")]
+    pub version: ::prost::alloc::string::String,
+    /// environment is a oneof field that can be used to specify the environment in different ways.
+    #[prost(oneof="execution_env::Environment", tags="3, 4")]
+    pub environment: ::core::option::Option<execution_env::Environment>,
+}
+/// Nested message and enum types in `ExecutionEnv`.
+pub mod execution_env {
+    /// environment is a oneof field that can be used to specify the environment in different ways.
+    #[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Environment {
+        /// extant is a reference to an existing environment.
+        #[prost(message, tag="3")]
+        Extant(::prost_types::Struct),
+        /// spec is a specification of the environment.
+        #[prost(message, tag="4")]
+        Spec(::prost_types::Struct),
     }
 }
 /// Describes a set of tasks to execute and how the final outputs are produced.
