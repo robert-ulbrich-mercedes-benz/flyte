@@ -2,6 +2,8 @@ package entrypoints
 
 import (
 	"context"
+	"github.com/flyteorg/flyte/flyteadmin/pkg/repositories/config"
+	"github.com/flyteorg/flyte/flyteadmin/pkg/runtime"
 
 	"github.com/spf13/cobra"
 	_ "gorm.io/driver/postgres" // Required to import database driver.
@@ -40,7 +42,16 @@ var seedProjectsCmd = &cobra.Command{
 	Short: "Seed projects in the database.",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		ctx := context.Background()
-		return server.SeedProjects(ctx, args)
+		configuration := runtime.NewConfigurationProvider()
+		projectConfig := configuration.ApplicationConfiguration().GetProjectsConfig()
+
+		var projects []config.Project
+
+		for _, project := range *projectConfig {
+			projects = append(projects, config.Project{Name: project.Name, Description: project.Description})
+		}
+
+		return server.SeedProjects(ctx, projects)
 	},
 }
 

@@ -2,6 +2,7 @@ package single
 
 import (
 	"context"
+	"github.com/flyteorg/flyte/flyteadmin/pkg/repositories/config"
 	"net/http"
 	"os"
 
@@ -71,9 +72,11 @@ func startAdmin(ctx context.Context, cfg Admin) error {
 	}
 
 	logger.Infof(ctx, "Seeding default projects...")
-	projects := []string{"flytesnacks"}
+	projects := []config.Project{{Name: "flytesnacks", Description: "flytesnacks project"}}
 	if len(cfg.SeedProjects) != 0 {
-		projects = cfg.SeedProjects
+		for _, project := range cfg.SeedProjects {
+			projects = append(projects, config.Project{Name: project.Name, Description: project.Description})
+		}
 	}
 	logger.Infof(ctx, "Seeding default projects...", projects)
 	if err := adminServer.SeedProjects(ctx, projects); err != nil {

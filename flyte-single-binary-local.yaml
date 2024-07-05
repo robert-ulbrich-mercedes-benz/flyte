@@ -93,3 +93,7 @@ task_resources:
   limits:
     cpu: 4
     memory: 4Gi
+
+projects:
+  - name: helix
+    description: This is a Helix project

@@ -678,6 +678,11 @@ configmap:
     BASE_URL: /console
     CONFIG_DIR: /etc/flyte/config
 
+  # -- Projects configuration for Flyte
+  project:
+    projects:
+      - name: flytesnacks
+        description: "Flyte Snacks is a project for testing Flyte features."
   # -- Domains configuration for Flyte projects. This enables the specified number of domains across all projects in Flyte.
   domain:
     domains:
