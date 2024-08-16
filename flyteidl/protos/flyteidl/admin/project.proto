@@ -50,6 +50,9 @@ message Project {
 
         // System generated projects that aren't explicitly created or managed by a user.
         SYSTEM_GENERATED = 2;
+
+        // System archived projects that aren't explicitly archived by a user.
+        SYSTEM_ARCHIVED = 3;
     }
     ProjectState state = 6;
 
@@ -115,3 +118,15 @@ message ProjectGetRequest {
     // Optional, org key applied to the resource.
     string org = 2;
 }
+
+
+// Error returned for inactive projects
+message InactiveProject {
+    // Indicates a unique project.
+    // +required
+    string id = 1;
+
+    // Optional, org key applied to the resource.
+    string org = 2;
+}
+

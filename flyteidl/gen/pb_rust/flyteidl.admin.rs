@@ -2518,6 +2518,8 @@ pub mod project {
         Archived = 1,
         /// System generated projects that aren't explicitly created or managed by a user.
         SystemGenerated = 2,
+        /// System archived projects that aren't explicitly archived by a user.
+        SystemArchived = 3,
     }
     impl ProjectState {
         /// String value of the enum field names used in the ProtoBuf definition.
@@ -2529,6 +2531,7 @@ pub mod project {
                 ProjectState::Active => "ACTIVE",
                 ProjectState::Archived => "ARCHIVED",
                 ProjectState::SystemGenerated => "SYSTEM_GENERATED",
+                ProjectState::SystemArchived => "SYSTEM_ARCHIVED",
             }
         }
         /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2537,6 +2540,7 @@ pub mod project {
                 "ACTIVE" => Some(Self::Active),
                 "ARCHIVED" => Some(Self::Archived),
                 "SYSTEM_GENERATED" => Some(Self::SystemGenerated),
+                "SYSTEM_ARCHIVED" => Some(Self::SystemArchived),
                 _ => None,
             }
         }
@@ -2603,6 +2607,18 @@ pub struct ProjectUpdateResponse {
 #[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ProjectGetRequest {
+    /// Indicates a unique project.
+    /// +required
+    #[prost(string, tag="1")]
+    pub id: ::prost::alloc::string::String,
+    /// Optional, org key applied to the resource.
+    #[prost(string, tag="2")]
+    pub org: ::prost::alloc::string::String,
+}
+/// Error returned for inactive projects
+#[allow(clippy::derive_partial_eq_without_eq)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InactiveProject {
     /// Indicates a unique project.
     /// +required
     #[prost(string, tag="1")]
