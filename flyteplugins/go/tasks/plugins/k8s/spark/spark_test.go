@@ -9,7 +9,6 @@ import (
 
 	sj "github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apis/sparkoperator.k8s.io/v1beta2"
 	sparkOp "github.com/GoogleCloudPlatform/spark-on-k8s-operator/pkg/apis/sparkoperator.k8s.io/v1beta2"
-	"github.com/golang/protobuf/jsonpb"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -26,6 +25,7 @@ import (
 	pluginIOMocks "github.com/flyteorg/flyte/flyteplugins/go/tasks/pluginmachinery/io/mocks"
 	"github.com/flyteorg/flyte/flyteplugins/go/tasks/pluginmachinery/k8s"
 	"github.com/flyteorg/flyte/flyteplugins/go/tasks/pluginmachinery/utils"
+	stdlibUtils "github.com/flyteorg/flyte/flytestdlib/utils"
 )
 
 const sparkMainClass = "MainClass"
@@ -318,7 +318,7 @@ func dummySparkTaskTemplateContainer(id string, sparkConf map[string]string) *co
 
 	structObj := structpb.Struct{}
 
-	err = jsonpb.UnmarshalString(sparkJobJSON, &structObj)
+	err = stdlibUtils.UnmarshalStringToPb(sparkJobJSON, &structObj)
 	if err != nil {
 		panic(err)
 	}
@@ -346,7 +346,7 @@ func dummySparkTaskTemplatePod(id string, sparkConf map[string]string, podSpec *
 
 	structObj := structpb.Struct{}
 
-	err = jsonpb.UnmarshalString(sparkJobJSON, &structObj)
+	err = stdlibUtils.UnmarshalStringToPb(sparkJobJSON, &structObj)
 	if err != nil {
 		panic(err)
 	}
@@ -853,7 +853,7 @@ func TestBuildResourcePodTemplate(t *testing.T) {
 	assert.Equal(t, defaultConfig.DefaultEnvVars["foo"], findEnvVarByName(sparkApp.Spec.Driver.Env, "foo").Value)
 	assert.Equal(t, defaultConfig.DefaultEnvVars["fooEnv"], findEnvVarByName(sparkApp.Spec.Driver.Env, "fooEnv").Value)
 	assert.Equal(t, findEnvVarByName(dummyEnvVarsWithSecretRef, "SECRET"), findEnvVarByName(sparkApp.Spec.Driver.Env, "SECRET"))
-	assert.Equal(t, 9, len(sparkApp.Spec.Driver.Env))
+	assert.Equal(t, 10, len(sparkApp.Spec.Driver.Env))
 	assert.Equal(t, testImage, *sparkApp.Spec.Driver.Image)
 	assert.Equal(t, flytek8s.GetServiceAccountNameFromTaskExecutionMetadata(taskCtx.TaskExecutionMetadata()), *sparkApp.Spec.Driver.ServiceAccount)
 	assert.Equal(t, defaultConfig.DefaultPodSecurityContext, sparkApp.Spec.Driver.SecurityContenxt)
@@ -890,7 +890,7 @@ func TestBuildResourcePodTemplate(t *testing.T) {
 	assert.Equal(t, defaultConfig.DefaultEnvVars["foo"], findEnvVarByName(sparkApp.Spec.Executor.Env, "foo").Value)
 	assert.Equal(t, defaultConfig.DefaultEnvVars["fooEnv"], findEnvVarByName(sparkApp.Spec.Executor.Env, "fooEnv").Value)
 	assert.Equal(t, findEnvVarByName(dummyEnvVarsWithSecretRef, "SECRET"), findEnvVarByName(sparkApp.Spec.Executor.Env, "SECRET"))
-	assert.Equal(t, 9, len(sparkApp.Spec.Executor.Env))
+	assert.Equal(t, 10, len(sparkApp.Spec.Executor.Env))
 	assert.Equal(t, testImage, *sparkApp.Spec.Executor.Image)
 	assert.Equal(t, defaultConfig.DefaultPodSecurityContext, sparkApp.Spec.Executor.SecurityContenxt)
 	assert.Equal(t, defaultConfig.DefaultPodDNSConfig, sparkApp.Spec.Executor.DNSConfig)

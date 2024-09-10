@@ -2,7 +2,6 @@ package executor
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -12,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
 
-	"github.com/flyteorg/flyte/flyteadmin/scheduler/identifier"
+	"github.com/flyteorg/flyte/flyteadmin/pkg/common/naming"
 	"github.com/flyteorg/flyte/flyteadmin/scheduler/repositories/models"
 	"github.com/flyteorg/flyte/flyteidl/gen/pb-go/flyteidl/admin"
 	"github.com/flyteorg/flyte/flyteidl/gen/pb-go/flyteidl/core"
@@ -53,23 +52,11 @@ func (w *executor) Execute(ctx context.Context, scheduledTime time.Time, s model
 		}
 	}
 
-	// Making the identifier deterministic using the hash of the identifier and scheduled time
-	executionIdentifier, err := identifier.GetExecutionIdentifier(ctx, core.Identifier{
-		Project: s.Project,
-		Domain:  s.Domain,
-		Name:    s.Name,
-		Version: s.Version,
-	}, scheduledTime)
-
-	if err != nil {
-		logger.Errorf(ctx, "failed to generate execution identifier for schedule %+v due to %v", s, err)
-		return err
-	}
-
+	executionName := naming.GetExecutionName(time.Now().UnixNano())
 	executionRequest := &admin.ExecutionCreateRequest{
 		Project: s.Project,
 		Domain:  s.Domain,
-		Name:    "f" + strings.ReplaceAll(executionIdentifier.String(), "-", "")[:19],
+		Name:    executionName,
 		Spec: &admin.ExecutionSpec{
 			LaunchPlan: &core.Identifier{
 				ResourceType: core.ResourceType_LAUNCH_PLAN,
@@ -97,7 +84,7 @@ func (w *executor) Execute(ctx context.Context, scheduledTime time.Time, s model
 
 	// Do maximum of 30 retries on failures with constant backoff factor
 	opts := wait.Backoff{Duration: 3000, Factor: 2.0, Steps: 30}
-	err = retry.OnError(opts,
+	err := retry.OnError(opts,
 		func(err error) bool {
 			// For idempotent behavior ignore the AlreadyExists error which happens if we try to schedule a launchplan
 			// for execution at the same time which is already available in admin.
@@ -114,6 +101,10 @@ func (w *executor) Execute(ctx context.Context, scheduledTime time.Time, s model
 		},
 		func() error {
 			_, execErr := w.adminServiceClient.CreateExecution(context.Background(), executionRequest)
+			if isInactiveProjectError(execErr) {
+				logger.Debugf(ctx, "project %+v is inactive, ignoring schedule create failure for %+v", s.Project, s)
+				return nil
+			}
 			return execErr
 		},
 	)
@@ -143,4 +134,19 @@ func getExecutorMetrics(scope promutils.Scope) executorMetrics {
 		SuccessfulExecutionCounter: scope.MustNewCounter("successful_execution_counter",
 			"count of successful attempts to fire execution for a schedules"),
 	}
+}
+
+func isInactiveProjectError(err error) bool {
+	statusErr, ok := status.FromError(err)
+	if !ok {
+		return false
+	}
+	if len(statusErr.Details()) > 0 {
+		for _, detail := range statusErr.Details() {
+			if _, ok := detail.(*admin.InactiveProject); ok {
+				return true
+			}
+		}
+	}
+	return false
 }

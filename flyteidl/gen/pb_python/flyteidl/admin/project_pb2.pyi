@@ -32,9 +32,11 @@ class Project(_message.Message):
         ACTIVE: _ClassVar[Project.ProjectState]
         ARCHIVED: _ClassVar[Project.ProjectState]
         SYSTEM_GENERATED: _ClassVar[Project.ProjectState]
+        SYSTEM_ARCHIVED: _ClassVar[Project.ProjectState]
     ACTIVE: Project.ProjectState
     ARCHIVED: Project.ProjectState
     SYSTEM_GENERATED: Project.ProjectState
+    SYSTEM_ARCHIVED: Project.ProjectState
     ID_FIELD_NUMBER: _ClassVar[int]
     NAME_FIELD_NUMBER: _ClassVar[int]
     DOMAINS_FIELD_NUMBER: _ClassVar[int]
@@ -88,6 +90,14 @@ class ProjectUpdateResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class ProjectGetRequest(_message.Message):
+    __slots__ = ["id", "org"]
+    ID_FIELD_NUMBER: _ClassVar[int]
+    ORG_FIELD_NUMBER: _ClassVar[int]
+    id: str
+    org: str
+    def __init__(self, id: _Optional[str] = ..., org: _Optional[str] = ...) -> None: ...
+
+class InactiveProject(_message.Message):
     __slots__ = ["id", "org"]
     ID_FIELD_NUMBER: _ClassVar[int]
     ORG_FIELD_NUMBER: _ClassVar[int]

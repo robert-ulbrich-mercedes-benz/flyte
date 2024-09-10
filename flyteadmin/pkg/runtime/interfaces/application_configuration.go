@@ -49,7 +49,8 @@ type PostgresConfig struct {
 }
 
 type FeatureGates struct {
-	EnableArtifacts bool `json:"enableArtifacts" pflag:",Enable artifacts feature."`
+	EnableArtifacts     bool `json:"enableArtifacts" pflag:",Enable artifacts feature."`
+	EnableFriendlyNames bool `json:"enableFriendlyNames" pflag:",Enable generation of friendly execution names feature."`
 }
 
 // ApplicationConfig is the base configuration to start admin
@@ -106,6 +107,9 @@ type ApplicationConfig struct {
 
 	// A URL pointing to the flyteconsole instance used to hit this flyteadmin instance.
 	ConsoleURL string `json:"consoleUrl,omitempty" pflag:",A URL pointing to the flyteconsole instance used to hit this flyteadmin instance."`
+
+	// Enabling this will instruct operator to use storage (s3/gcs/etc) to offload workflow execution inputs instead of storing them inline in the CRD.
+	UseOffloadedInputs bool `json:"useOffloadedInputs" pflag:",Use offloaded inputs for workflows."`
 }
 
 func (a *ApplicationConfig) GetRoleNameKey() string {
