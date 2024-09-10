@@ -99,3 +99,9 @@ task_resources:
 projects:
   - name: helix
     description: This is a Helix project
+
+flyte:
+  admin:
+    seedProjects:
+      - name: privatespace
+        description: This is my private space
