@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/flyteorg/flyte/flyteadmin/pkg/repositories/config"
 	"github.com/flyteorg/flyte/flyteadmin/pkg/runtime"
-
 	"github.com/spf13/cobra"
 	_ "gorm.io/driver/postgres" // Required to import database driver.
 
@@ -45,10 +44,16 @@ var seedProjectsCmd = &cobra.Command{
 		configuration := runtime.NewConfigurationProvider()
 		projectConfig := configuration.ApplicationConfiguration().GetProjectsConfig()
 
-		var projects []config.Project
+		var projectsMap = make(map[string]config.Project)
 
 		for _, project := range *projectConfig {
-			projects = append(projects, config.Project{Name: project.Name, Description: project.Description})
+			projectsMap[project.Name] = config.Project{Name: project.Name, Description: project.Description}
+		}
+
+		var projects = make([]config.Project, 0, len(projectsMap))
+
+		for _, project := range projectsMap {
+			projects = append(projects, project)
 		}
 
 		return server.SeedProjects(ctx, projects)

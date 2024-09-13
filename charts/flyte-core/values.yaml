@@ -43,11 +43,6 @@ flyteadmin:
       memory: 50Mi
   # -- Default regex string for searching configuration files
   configPath: /etc/flyte/config/*.yaml
-  # -- Initial projects to create
-  initialProjects:
-    - flytesnacks
-    - flytetester
-    - flyteexamples
   # -- Service settings for Flyteadmin
   service:
     annotations:
@@ -676,7 +671,11 @@ configmap:
   project:
     projects:
       - name: flytesnacks
-        description: "Flyte Snacks is a project for testing Flyte features."
+        description: "flytesnacks project"
+      - name: flytetester
+        description: "flytetester project"
+      - name: flyteexamples
+        description: "flyteexamples project"
   # -- Domains configuration for Flyte projects. This enables the specified number of domains across all projects in Flyte.
   domain:
     domains:
