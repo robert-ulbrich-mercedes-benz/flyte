@@ -96,12 +96,8 @@ task_resources:
     cpu: 4
     memory: 4Gi
 
-projects:
-  - name: helix
-    description: This is a Helix project
-
 flyte:
   admin:
     seedProjects:
-      - name: privatespace
-        description: This is my private space
+      - name: flytesnacks
+        description: Flytesnacks project
